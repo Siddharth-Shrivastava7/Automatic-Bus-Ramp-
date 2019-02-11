@@ -1,0 +1,94 @@
+#include <Servo.h>
+
+Servo myservo1;
+
+Servo myservo2;
+
+int pos1 =180;
+int pos2=180; 
+#define trigPin 7 // genrates ultrasonic waves from ultrasonic sensor
+#define echoPin 6// receives ultrasonic waves after reflection from obstacle
+#define pin 3 // push up switch                        
+#define led 13 // defines LED pin in arduino 
+unsigned long t;
+
+
+void setup() {
+  Serial.begin (9600); // control the serial data rate transfer 
+  pinMode(pin,INPUT);   
+  myservo1.attach(8);  // attaches the servo motor on pin 8 to the servo object
+  myservo2.attach(9);  // attaches the servo motor on pin 9 to the servo object 
+  pinMode(trigPin, OUTPUT); 
+  pinMode(echoPin, INPUT); 
+  pinMode(led, OUTPUT); 
+}
+void loop() {
+
+  // when switch is press then 1st servo motor operates
+  digitalWrite(3,HIGH);
+  while (digitalRead(3)==LOW)
+  {  
+  myservo1.attach(8); 
+  for (pos1 = 180; pos1 >= 0; pos1 -= 1)  {// goes from 0 degrees to 180 degrees
+    // in steps of 1 degree
+    myservo1.write(pos1);              // tell servo to go to position in variable 'pos'
+    delay(15);
+  } 
+  myservo1.detach();
+
+  delay(1000); // delay of 1 second
+
+// after the delay, 2nd motor operates
+    myservo2.attach(9);
+  for (pos2 = 180; pos2 >= 0; pos2 -= 1)  {// goes from 0 degrees to 180 degrees
+    // in steps of 1 degree
+    myservo2.write(pos2);              // tell servo to go to position in variable 'pos'
+    delay(15);
+  } 
+  myservo2.detach();
+
+// ultrasonic sensor is uesd to control the amount of time for which both the servo motors should be off 
+for(t=0;t<=3;t++)
+{
+  long duration, distance;
+  digitalWrite(trigPin, LOW); 
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  duration = pulseIn(echoPin, HIGH);
+  distance = (duration/2) / 29.1;
+
+  // obstacle within 5cm, then turn LED On
+   if(distance <= 5) {
+    digitalWrite(led, LOW);
+    t=0;
+}
+else
+{
+  digitalWrite(led,HIGH);
+  delay(1000);
+}
+}
+// when obstacle is not observed within 5cm for 3 seconds(here) the start the operation of motors in reverse order
+  myservo2.attach(9);
+  
+for (pos2 =0 ;pos2 <= 180; pos2+=1){
+myservo2.write(pos2);
+delay(15);
+}
+ 
+  myservo2.detach();
+    
+ delay(1000);
+
+  myservo1.attach(8);
+  
+for (pos1 =0;pos1<=180;pos1+=1){
+myservo1.write(pos1);
+delay(15);
+}
+myservo1.detach();
+delay(20);
+  }
+}
